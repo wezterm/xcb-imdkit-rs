@@ -15,6 +15,7 @@ use parking_lot::Mutex;
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::sync::{Arc, LazyLock};
+use std::time::{Duration, Instant};
 use xcb::x::Window;
 use xcb::{Raw, Xid, XidNew};
 
@@ -40,6 +41,7 @@ fn rust_log(msg: *const c_char) {
 extern "C" fn create_ic_callback(im: *mut xcb_xim_t, new_ic: xcb_xic_t, user_data: *mut c_void) {
     let ime = unsafe { ime_from_user_data(user_data) };
     ime.ic = Some(new_ic);
+    ime.ic_initializing = None;
     unsafe {
         xcb_xim_set_ic_focus(im, new_ic);
     }
@@ -358,6 +360,7 @@ pub struct ImeClient {
     conn: Option<Arc<xcb::Connection>>,
     im: *mut xcb_xim_t,
     ic: Option<xcb_xic_t>,
+    ic_initializing: Option<Instant>,
     callbacks: Callbacks,
     input_style: InputStyle,
     pos_cur: ImePos,
@@ -426,6 +429,7 @@ impl ImeClient {
             conn: None,
             im,
             ic: None,
+            ic_initializing: None,
             callbacks: Callbacks::default(),
             input_style,
             pos_cur: ImePos { win: 0, x: 0, y: 0 },
@@ -447,6 +451,8 @@ impl ImeClient {
         xcb_xim_set_log_handler(im, Some(xcb_log_wrapper));
         xcb_xim_set_use_compound_text(im, true);
         xcb_xim_set_use_utf8_string(im, true);
+
+        res.try_open_ic();
         res
     }
 
@@ -454,6 +460,21 @@ impl ImeClient {
         if self.ic.is_some() {
             return;
         }
+        let now = Instant::now();
+        if let Some(prev_try) = self.ic_initializing {
+            // It takes some time(up to 100ms) to go through the 4 steps to initialize self.ic:
+            // > xcb_xim_open -> open_callback -> xcb_xim_create_ic -> create_ic_callback
+            // The initialization logic will fail if we call xcb_xim_open again
+            // while it's already in progress, so allow 5 seconds for the job to finish.
+            let duration = now.duration_since(prev_try);
+            if duration.lt(&Duration::from_secs(5)) {
+                return;
+            }
+            if let Some(logger) = LOGGER.lock().as_mut() {
+                logger("try_open_ic timed out, retrying");
+            }
+        }
+        self.ic_initializing = Some(now);
         let data: *mut ImeClient = self as _;
         unsafe { xcb_xim_open(self.im, Some(open_callback), true, data as _) };
     }
