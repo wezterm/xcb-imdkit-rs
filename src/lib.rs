@@ -9,13 +9,11 @@ of said library as simply as possible.
 To get started quickly, consult the examples folder.
 */
 
-#[macro_use]
-extern crate lazy_static;
-
 use parking_lot::Mutex;
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
 use std::sync::Arc;
+use std::sync::LazyLock;
 use xcb::x::Window;
 use xcb::{Raw, Xid, XidNew};
 
@@ -27,9 +25,7 @@ mod clib;
 
 type LogFn = dyn for<'a> FnMut(&'a str) + Send;
 
-lazy_static! {
-    static ref LOGGER: Mutex<Option<Box<LogFn>>> = Mutex::default();
-}
+static LOGGER: LazyLock<Mutex<Option<Box<LogFn>>>> = LazyLock::new(||Mutex::default());
 
 extern "C" {
     fn xcb_log_wrapper(msg: *const c_char, ...);
