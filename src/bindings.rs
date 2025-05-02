@@ -2659,6 +2659,14 @@ extern "C" {
     ) -> bool;
 }
 extern "C" {
+    pub fn xcb_xim_forward_event_full(
+        im: *mut xcb_xim_t,
+        ic: xcb_xic_t,
+        sequence: u16,
+        event: *mut xcb_key_press_event_t,
+    ) -> bool;
+}
+extern "C" {
     pub fn xcb_xim_reset_ic(
         im: *mut xcb_xim_t,
         ic: xcb_xic_t,
@@ -2810,6 +2818,15 @@ extern "C" {
     pub fn xcb_im_forward_event(
         im: *mut xcb_im_t,
         ic: *mut xcb_im_input_context_t,
+        event: *mut xcb_key_press_event_t,
+    );
+}
+extern "C" {
+    #[doc = " Send a key event to the client.\n\n @param im XIM server\n @param ic Input context.\n @param sequence sequence number, when re-inject, should be the value from\n forward_event\n @param event key event.\n @see xcb_im_forward_event_fr_t."]
+    pub fn xcb_im_forward_event_full(
+        im: *mut xcb_im_t,
+        ic: *mut xcb_im_input_context_t,
+        sequence: u16,
         event: *mut xcb_key_press_event_t,
     );
 }
