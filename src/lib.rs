@@ -9,23 +9,20 @@ of said library as simply as possible.
 To get started quickly, consult the examples folder.
 */
 
+use bitflags::bitflags;
+use clib::*;
 use parking_lot::Mutex;
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
-use std::sync::Arc;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use xcb::x::Window;
 use xcb::{Raw, Xid, XidNew};
-
-use bitflags::bitflags;
-
-use clib::*;
 
 mod clib;
 
 type LogFn = dyn for<'a> FnMut(&'a str) + Send;
 
-static LOGGER: LazyLock<Mutex<Option<Box<LogFn>>>> = LazyLock::new(||Mutex::default());
+static LOGGER: LazyLock<Mutex<Option<Box<LogFn>>>> = LazyLock::new(|| Mutex::default());
 
 extern "C" {
     fn xcb_log_wrapper(msg: *const c_char, ...);
@@ -89,10 +86,7 @@ unsafe fn xim_encoding_to_utf8(
 ) -> String {
     let mut buf: Vec<u8> = vec![];
     if xcb_xim_get_encoding(im) == _xcb_xim_encoding_t_XCB_XIM_UTF8_STRING {
-        buf.extend(from_raw_parts(
-            xim_str as *const u8,
-            length as usize,
-        ));
+        buf.extend(from_raw_parts(xim_str as *const u8, length as usize));
     } else if xcb_xim_get_encoding(im) == _xcb_xim_encoding_t_XCB_XIM_COMPOUND_TEXT {
         let mut new_length = 0usize;
         let utf8 = xcb_compound_text_to_utf8(xim_str, length as usize, &mut new_length);
@@ -108,10 +102,7 @@ unsafe fn ime_from_user_data(user_data: *mut c_void) -> &'static mut ImeClient {
     &mut *(user_data as *mut ImeClient)
 }
 
-extern "C" fn disconnected_callback(
-    _im: *mut xcb_xim_t,
-    user_data: *mut c_void,
-) {
+extern "C" fn disconnected_callback(_im: *mut xcb_xim_t, user_data: *mut c_void) {
     let ime = unsafe { ime_from_user_data(user_data) };
     ime.ic.take();
 }
