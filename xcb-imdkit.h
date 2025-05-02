@@ -1,7 +1,7 @@
-#include <xcb-imdkit/encoding.h>
-#include <xcb-imdkit/imclient.h>
-#include <xcb-imdkit/imdkit.h>
-#include <xcb-imdkit/xcbimdkit_export.h>
-#include <xcb-imdkit/ximcommon.h>
-#include <xcb-imdkit/ximproto-gen.h>
-#include <xcb-imdkit/ximproto.h>
+#include <encoding.h>
+#include <imclient.h>
+#include <imdkit.h>
+#include <xcbimdkit_export.h>
+#include <ximcommon.h>
+#include <ximproto-gen.h>
+#include <ximproto.h>

@@ -7,7 +7,6 @@ bindgen \
 	--allowlist-type "_xcb_im_style_t" \
 	--allowlist-type "xcb_im_feedback_t" \
 	--allowlist-var "$WHITELIST" \
-	--size_t-is-usize \
 	--no-layout-tests \
 	"xcb-imdkit.h" \
 	-o src/bindings.rs \
