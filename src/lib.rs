@@ -466,8 +466,7 @@ impl ImeClient {
             // > xcb_xim_open -> open_callback -> xcb_xim_create_ic -> create_ic_callback
             // The initialization logic will fail if we call xcb_xim_open again
             // while it's already in progress, so allow 5 seconds for the job to finish.
-            let duration = now.duration_since(prev_try);
-            if duration.lt(&Duration::from_secs(5)) {
+            if prev_try.elapsed() < Duration::from_secs(5) {
                 return;
             }
             if let Some(logger) = LOGGER.lock().as_mut() {
