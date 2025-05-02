@@ -1,11 +1,11 @@
 [package]
 name = "xcb-imdkit"
 version = "0.3.0"
-edition = "2018"
+edition = "2021"
 license = "LGPL-2.1-only"
 description = "Wrapper around xcb-imdkit, providing an IME client for the XIM protocol using XCB"
-homepage = "https://github.com/H-M-H/xcb-imdkit-rs"
-repository = "https://github.com/H-M-H/xcb-imdkit-rs"
+homepage = "https://github.com/wezterm/xcb-imdkit-rs"
+repository = "https://github.com/wezterm/xcb-imdkit-rs"
 readme = "Readme.md"
 keywords = ["ffi", "xcb", "x11", "ime", "xim"]
 categories = ["api-bindings", "gui", "text-processing"]
