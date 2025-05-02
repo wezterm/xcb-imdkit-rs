@@ -12,9 +12,10 @@ To get started quickly, consult the examples folder.
 #[macro_use]
 extern crate lazy_static;
 
+use parking_lot::Mutex;
 use std::os::raw::{c_char, c_void};
 use std::pin::Pin;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use xcb::x::Window;
 use xcb::{Raw, Xid, XidNew};
 
@@ -38,7 +39,7 @@ extern "C" {
 fn rust_log(msg: *const c_char) {
     let msg = unsafe { std::ffi::CStr::from_ptr(msg) }.to_string_lossy();
     let msg = msg.trim();
-    if let Some(logger) = LOGGER.lock().unwrap().as_mut() {
+    if let Some(logger) = LOGGER.lock().as_mut() {
         logger(msg);
     }
 }
@@ -387,7 +388,7 @@ impl ImeClient {
     where
         F: for<'a> FnMut(&'a str) + Send + 'static,
     {
-        LOGGER.lock().unwrap().replace(Box::new(f));
+        LOGGER.lock().replace(Box::new(f));
     }
 
     /// Create a new [`ImeClient`].
